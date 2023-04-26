@@ -40,8 +40,8 @@ modules:
 
       - type: git
         url: https://github.com/Inochi2D/inochi-creator.git
-        commit: f1bfc20122d1f912f400d0838c529e220718bfb2
-        tag: v0.7.4.1
+        commit: b6d0ab360729a7014cb764c18e7d32445a62dc87
+        tag: v0.7.3
         disable-shallow-clone: true
         x-checker-data:
           type: git
