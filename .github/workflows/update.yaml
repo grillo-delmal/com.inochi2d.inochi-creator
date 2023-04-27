@@ -9,11 +9,17 @@ env:
   FLATPAK_ID: com.inochi2d.inochi-creator
 
 jobs:
-  inochi-creator-release-check:
+  release-check:
     runs-on: ubuntu-latest
+    container:
+      image: bilelmoussaoui/flatpak-github-actions:freedesktop-22.08
+      options: --privileged
 
     steps:
       - uses: actions/checkout@v3
+      - name: Fix git
+        run: |
+          git config --global --add safe.directory /__w/${{ env.FLATPAK_ID }}/${{ env.FLATPAK_ID }}
 
       - name: Check updates
         uses: docker://ghcr.io/flathub/flatpak-external-data-checker:latest
@@ -26,10 +32,9 @@ jobs:
             exit 1
           fi
 
-      - uses: dlang-community/setup-dlang@v1
-        with:
-          compiler: ldc-latest
-          dub: "1.29.0"
+      - name: Install deps
+        run: |
+          dnf -y install dub ldc python3-pyyaml
 
       - name: Update dependencies
         run: |
@@ -44,9 +49,10 @@ jobs:
         env:
           GIT_AUTHOR_NAME: Flatpak External Data Checker
           GIT_COMMITTER_NAME: Flatpak External Data Checker
-          GIT_AUTHOR_EMAIL: ${{ env.GIT_USER_NAME }}
-          GIT_COMMITTER_EMAIL: ${{ env.GIT_USER_EMAIL }}
-          EMAIL: ${{ env.GIT_USER_EMAIL }}
+          # email sets "github-actions[bot]" as commit author, see https://github.community/t/github-actions-bot-email-address/17204/6
+          GIT_AUTHOR_EMAIL: 41898282+github-actions[bot]@users.noreply.github.com
+          GIT_COMMITTER_EMAIL: 41898282+github-actions[bot]@users.noreply.github.com
+          EMAIL: 41898282+github-actions[bot]@users.noreply.github.com
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           args: --update --never-fork ${{ env.FLATPAK_ID }}.yml
