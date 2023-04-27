@@ -6,14 +6,22 @@ on:
   workflow_dispatch: # can be manually dispatched under GitHub's "Actions" tab 
 
 env:
+  GIT_USER_NAME: github-actions[bot]
+  GIT_USER_EMAIL: github-actions[bot]@users.noreply.github.org
   FLATPAK_ID: com.inochi2d.inochi-creator
 
 jobs:
-  inochi-creator-release-check:
+  release-check:
     runs-on: ubuntu-latest
+    container:
+      image: bilelmoussaoui/flatpak-github-actions:freedesktop-22.08
+      options: --privileged
 
     steps:
       - uses: actions/checkout@v3
+      - name: Fix git
+        run: |
+          git config --global --add safe.directory /__w/${{ env.FLATPAK_ID }}/${{ env.FLATPAK_ID }}
 
       - name: Check updates
         uses: docker://ghcr.io/flathub/flatpak-external-data-checker:latest
@@ -26,10 +34,9 @@ jobs:
             exit 1
           fi
 
-      - uses: dlang-community/setup-dlang@v1
-        with:
-          compiler: ldc-latest
-          dub: "1.29.0"
+      - name: Install deps
+        run: |
+          dnf -y install dub ldc python3-pyyaml
 
       - name: Update dependencies
         run: |
